@@ -1,0 +1,67 @@
+#!/bin/bash
+########################################################################################
+## Backup from source to destinations and delete on destinations if on source deleted ##
+########################################################################################
+#for incremental backup just remove --delete
+
+scriptdir=`realpath "$0" | sed 's|\(.*\)/.*|\1|'`
+
+purple=`echo -en "\e[35m"`
+orange=`echo -en "\e[33m"`
+green=`echo -en "\e[32m"`
+normal=`echo -en "\e[0m"`
+
+echo -e "${purple}###################\n## Backup Script ##\n###################$normal"
+
+helpmenu(){
+    echo "${purple}Usage:$normal ./BackupScript <option>"
+    echo "${orange}Backup from source to destinations and delete on destinations if on source deleted$normal"
+    echo ""
+    echo "-h        --help                    Display Help"
+    echo "-d        --dialog                  Opens file dialog gui to choose source and destination paths."
+    echo "-c        --code                    Takes source and destination from variables in the code."
+    echo "                                    You might want to change these variables before running."
+    echo ""
+    exit
+}
+
+if [[ " $# " -ne 0 ]]; then
+    for i in $@
+    do
+        if [[ ${i} = "-h" || ${i} = "--help" ]]; then
+            helpmenu
+        elif [[ ${i} = "-d" || ${i} = "--dialog" ]]; then
+            #file dialog prompt
+            echo "${green}Choose source directory: $normal"
+            SRC=$(zenity --file-selection --directory --title="Choose source directory" --filename=/)/
+            echo "Source:       $SRC"
+            echo "${green}Choose destination directory: $normal"
+            DST=$(zenity --file-selection --directory --title="Choose destination directory" --filename=/)
+            echo "Destination:  $DST"
+        elif [[ ${i} = "-c" || ${i} = "--code" ]]; then
+            #with hard coded values
+            SRC="/home/master/"
+            DST="/media/master/backup" # pfad sollte nicht mit "/" enden!
+            echo "Source:       $SRC"
+            echo "Destination:  $DST"
+        else
+            echo "no valid argument"
+            exit
+        fi
+    done
+else
+    read -p "${green}Enter source [/home/master/]: $normal" name
+    SRC=${name:-/home/master/}
+    echo $SRC
+
+    read -p "${green}Enter destination [/media/master/backup]: $normal" name
+    DST=${name:-/media/master/backup}
+    echo $DST
+fi
+
+read -p "${orange}Press enter to start: $normal"
+
+[ ! -d "$DST" ] && mkdir -p "$DST"
+rsync -rav --delete --exclude-from=$scriptdir/IgnoreList.txt --human-readable --info=progress2 $SRC $DST
+
+echo "${green}done...$normal"
