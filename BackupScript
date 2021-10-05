@@ -50,12 +50,12 @@ if [[ " $# " -ne 0 ]]; then
         fi
     done
 else
-    read -p "${green}Enter source [/home/master/]: $normal" name
-    SRC=${name:-/home/master/}
+    read -p "${green}Enter source [/home/master/]: $normal" input
+    SRC=${input:-/home/master/}
     echo $SRC
 
-    read -p "${green}Enter destination [/media/master/backup]: $normal" name
-    DST=${name:-/media/master/backup}
+    read -p "${green}Enter destination [/media/master/backup]: $normal" input
+    DST=${input:-/media/master/backup}
     echo $DST
 fi
 
