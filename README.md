@@ -4,8 +4,7 @@ Backup from source to destinations and delete on destinations if on source delet
 
 ## Usage
 
-Usage: ./BackupScript <option>\
-Backup from source to destinations and delete on destinations if on source deleted\
+Usage: ./BackupScript <option>
 
 -h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--help&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Display Help\
 -d&nbsp;&nbsp;&nbsp;&nbsp;--dialog&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Opens file dialog gui to choose source and destination paths.\
