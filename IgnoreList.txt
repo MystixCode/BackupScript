@@ -12,6 +12,7 @@
 /.steam
 /.thunderbird
 /.vscode
+/go
 /.bash_history
 /.bash_logout
 /.bashrc
