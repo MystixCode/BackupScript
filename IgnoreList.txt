@@ -13,7 +13,7 @@
 /.symfony5
 /.thunderbird
 /.vscode
-/.go
+/go
 /.bash_history
 /.bash_logout
 /.bashrc

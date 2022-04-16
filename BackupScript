@@ -18,7 +18,7 @@ helpmenu(){
     echo "${orange}Backup from source to destinations and delete on destinations if on source deleted$normal"
     echo ""
     echo "-h        --help                    Display Help"
-    echo "-d        --dialog                  Opens file dialog gui to choose source and destination paths."
+    echo "-i        --interactive             Opens file dialog gui to choose source and destination paths."
     echo "-c        --code                    Takes source and destination from variables in the code."
     echo "                                    You might want to change these variables before running."
     echo ""
@@ -30,7 +30,7 @@ if [[ " $# " -ne 0 ]]; then
     do
         if [[ ${i} = "-h" || ${i} = "--help" ]]; then
             helpmenu
-        elif [[ ${i} = "-d" || ${i} = "--dialog" ]]; then
+        elif [[ ${i} = "-i" || ${i} = "--interactive" ]]; then
             #file dialog prompt
             echo "${green}Choose source directory: $normal"
             SRC=$(zenity --file-selection --directory --title="Choose source directory" --filename=/)/
