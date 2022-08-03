@@ -3,6 +3,7 @@
 /.config
 /.kde
 /.local
+/.godot
 /.minecraft
 /.mono
 /.mozilla
@@ -26,3 +27,7 @@
 /.steampid
 /.Xauthority
 /.xsession-errors
+/.python_history
+/.node_repl_history
+/.psql_history
+/.viminfo
