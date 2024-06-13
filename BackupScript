@@ -62,6 +62,6 @@ fi
 read -p "${orange}Press enter to start: $normal"
 
 [ ! -d "$DST" ] && mkdir -p "$DST"
-rsync -rav --exclude-from=$scriptdir/IgnoreList.txt --human-readable --info=progress2 $SRC $DST
+rsync -rav --delete --exclude-from=$scriptdir/IgnoreList.txt --human-readable --info=progress2 $SRC $DST
 
 echo "${green}done...$normal"
