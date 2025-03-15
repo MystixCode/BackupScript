@@ -1,12 +1,18 @@
 # BackupScript
 
-Backup from source to destinations and delete on destinations if on source deleted
+Backup from source to destination with retention and dry run.
 
 ## Usage
 
-Usage: ./BackupScript <option>
+```
+Usage: ./BackupScript [options]
+Backup from source to destinations with backup retention
 
--h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--help&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Display Help\
--d&nbsp;&nbsp;&nbsp;&nbsp;--dialog&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Opens file dialog gui to choose source and destination paths.\
--c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--code&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Takes source and destination from variables in the code.\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You might want to change these variables before running.                       
+-h        --help                    Display help
+-d        --dry-run                 Perform a trial run with no changes
+-e        --exclude                 Exclude list file.
+-r        --retention <num>         Set number of backup versions to retain
+          --src                     Set source directory
+          --dst                     Set destination directory
+          --use-defaults            Run with default values
+```
