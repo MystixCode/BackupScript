@@ -1,67 +1,125 @@
 #!/bin/bash
-########################################################################################
-## Backup from source to destinations and delete on destinations if on source deleted ##
-########################################################################################
-#for incremental backup just remove --delete
 
-scriptdir=`realpath "$0" | sed 's|\(.*\)/.*|\1|'`
+scriptdir=$(dirname "$(realpath "$0")")
+backup_suffix="backup_$(date +%Y-%m-%d_%H-%M-%S)/"
+dry_run_mode=false
+default_src="$HOME/"
+default_dst="/media/$USER/backup/"
+default_exclude_list="$scriptdir/IgnoreList.txt"
+default_retention=5
 
-purple=`echo -en "\e[35m"`
-orange=`echo -en "\e[33m"`
-green=`echo -en "\e[32m"`
-normal=`echo -en "\e[0m"`
+echo -e "###################\n## Backup Script ##\n###################"
 
-echo -e "${purple}###################\n## Backup Script ##\n###################$normal"
-
-helpmenu(){
-    echo "${purple}Usage:$normal ./BackupScript <option>"
-    echo "${orange}Backup from source to destinations and delete on destinations if on source deleted$normal"
+usage(){
+    echo -e "Usage: $0 [options]"
+    echo -e "Backup from source to destinations with backup retention"
     echo ""
-    echo "-h        --help                    Display Help"
-    echo "-i        --interactive             Opens file dialog gui to choose source and destination paths."
-    echo "-c        --code                    Takes source and destination from variables in the code."
-    echo "                                    You might want to change these variables before running."
-    echo ""
-    exit
+    echo "-h        --help                    Display help"
+    echo "-d        --dry-run                 Perform a trial run with no changes"
+    echo "-e        --exclude                 Exclude list file."
+    echo "-r        --retention <num>         Set number of backup versions to retain"
+    echo "          --src                     Set source directory"
+    echo "          --dst                     Set destination directory"
+    echo "          --use-defaults            Run with default values"
+    exit 0
 }
 
-if [[ " $# " -ne 0 ]]; then
-    for i in $@
-    do
-        if [[ ${i} = "-h" || ${i} = "--help" ]]; then
-            helpmenu
-        elif [[ ${i} = "-i" || ${i} = "--interactive" ]]; then
-            #file dialog prompt
-            echo "${green}Choose source directory: $normal"
-            SRC=$(zenity --file-selection --directory --title="Choose source directory" --filename=/)/
-            echo "Source:       $SRC"
-            echo "${green}Choose destination directory: $normal"
-            DST=$(zenity --file-selection --directory --title="Choose destination directory" --filename=/)
-            echo "Destination:  $DST"
-        elif [[ ${i} = "-c" || ${i} = "--code" ]]; then
-            #with hard coded values
-            SRC="/home/master/"
-            DST="/media/master/backup" # pfad sollte nicht mit "/" enden!
-            echo "Source:       $SRC"
-            echo "Destination:  $DST"
-        else
-            echo "no valid argument"
-            exit
-        fi
-    done
-else
-    read -p "${green}Enter source [/home/master/]: $normal" input
-    SRC=${input:-/home/master/}
-    echo $SRC
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        -h|--help) usage ;;
+        -d|--dry-run) dry_run_mode=true ;;
+        -e|--exclude) exclude_list="$2"; shift ;;
+        -r|--retention) retention="$2"; shift ;;
+        --src) src="$2"; shift ;;
+        --dst) dst="$2"; shift ;;
+        --use-defaults) src=$default_src; dst=$default_dst; exclude_list=$default_exclude_list; retention=$default_retention ;;
+        *) echo "Unknown option: $1"; usage ;;
+    esac
+    shift
+done
 
-    read -p "${green}Enter destination [/media/master/backup]: $normal" input
-    DST=${input:-/media/master/backup}
-    echo $DST
+if [[ -z "$src" || -z "$dst" ]]; then
+    echo "Error: Both --src and --dst are required unless --use-defaults is set."
+    usage
+    exit 1
 fi
 
-read -p "${orange}Press enter to start: $normal"
+start=$(date +%s)
+echo "Script start: $(date)"
 
-[ ! -d "$DST" ] && mkdir -p "$DST"
-rsync -rav --delete --exclude-from=$scriptdir/IgnoreList.txt --human-readable --info=progress2 $SRC $DST
+src="${src%/}/"
+dst="${dst%/}/"
 
-echo "${green}done...$normal"
+backup_path="$dst$backup_suffix"
+rsync_opts="--archive --verbose --human-readable"
+
+if [[ ! -d "$src" ]]; then
+    echo -e "Error: Source directory $src does not exist."
+    exit 1
+fi
+
+if [[ ! -d "$dst" ]]; then
+    echo -e "Error: Destination directory $dst does not exist."
+    exit 1
+fi
+
+if [ ! -z "$exclude_list" ]; then
+    if [[ ! -f "$exclude_list" ]]; then
+        echo -e "Error: Exclude list $exclude_list does not exist."
+        exit 1
+    fi
+    rsync_opts+=" --exclude-from=$exclude_list"
+fi
+
+if [ $dry_run_mode == true ]; then
+    rsync_opts+=" --dry-run"
+else
+    mkdir -p "$backup_path"
+    log_file="${backup_path}backup.log"
+    touch "$log_file"
+    exec > >(tee -a "$log_file") 2>&1
+fi
+
+rsync $rsync_opts "$src" "$backup_path"
+
+if [[ $? -eq 0 ]]; then
+    echo -e "Backup completed successfully."
+else
+    echo -e "ERROR: Backup failed."
+    exit 1
+fi
+
+if [[ "$retention" =~ ^[0-9]+$ ]]; then
+    backup_count=$(find "$dst" -maxdepth 1 -type d -name "backup_*" | wc -l)
+    if [[ "$backup_count" -ge "$retention" ]]; then
+
+      # Because in dry run there is no new backup
+      if [[ $dry_run_mode == true ]]; then
+         ((retention--))
+      fi
+       old_backups=$(find "$dst" -maxdepth 1 -type d -name "backup_*" | sort | head -n -$retention )
+        if [[ -n "$old_backups" ]]; then
+            echo "The following old backups will be deleted:"
+            echo "$old_backups"
+
+            if [[ $dry_run_mode == true ]]; then
+                echo "Retention dry-run"
+            else
+                echo "$old_backups" | xargs rm -rf
+                echo "Old backups deleted."
+            fi
+        else
+            echo "Error: Old backups not deleted."
+        fi
+    fi
+fi
+end=$(date +%s)
+echo "Script end: $(date)"
+duration_in_seconds=$(($end - $start))
+days=$((duration_in_seconds / 86400))
+hours=$(( (duration_in_seconds % 86400) / 3600 ))
+minutes=$(( (duration_in_seconds % 3600) / 60 ))
+seconds=$((duration_in_seconds % 60))
+
+# Output the result
+echo "Duration: $days days, $hours hours, $minutes minutes, $seconds seconds"

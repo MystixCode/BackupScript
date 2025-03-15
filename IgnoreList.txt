@@ -39,10 +39,15 @@
 /.selected_editor
 /.wget-hsts
 /.fonts
+/.fonts.conf
 /.sudo_as_admin_successful
 /.npm-global
 /.swt
 /FiraxisLive
 /.cargo
 /.dotnet
-
+/.face
+/.face.icon
+/Public
+/snap
+/.gnome
